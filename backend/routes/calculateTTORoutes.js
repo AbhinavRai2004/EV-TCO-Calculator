@@ -2,178 +2,108 @@ const express = require("express");
 const router = express.Router();
 
 router.post("/calculate-tco", (req, res) => {
-  const { iceVehicle, evVehicle, customerUsage } = req.body;
+  const { iceVehicle, evVehicle, customerUsage, considerBatteryReplacement } =
+    req.body;
 
-  // Extract ICE and EV vehicle details from request
-  const {
-    price: icePrice,
-    mileage, // Mileage in km/l
-    fuelCost, // Fuel cost per liter
-    maintenanceCost: iceMaintenance,
-    insuranceCost: iceInsurance,
-    resaleValue: iceResale
-  } = iceVehicle;
+  const toNumber = (value, defaultValue = 0) => {
+    const num = Number(value);
+    return isNaN(num) ? defaultValue : num;
+  };
 
-  const {
-    price: evPrice,
-    range, // Range in km per charge
-    batteryCapacity, // kWh
-    chargingCost, // Charging cost per kWh
-    batteryReplacementCost,
-    batteryReplacementInterval,
-    maintenanceCost: evMaintenance,
-    insuranceCost: evInsurance,
-    resaleValue: evResale
-  } = evVehicle;
+  // ICE vehicle data
+  const icePrice = toNumber(iceVehicle.price);
+  const mileage = toNumber(iceVehicle.mileage, 1); // km/l
+  const fuelCost = toNumber(iceVehicle.fuelCost);
 
-  const { monthlyKm, years } = customerUsage;
-
-  // Convert input to numbers for calculations
-  const monthlyKmNum = Number(monthlyKm);
-  const yearsNum = Number(years);
-  const fuelCostNum = Number(fuelCost);
-  const iceMaintenanceNum = Number(iceMaintenance);
-  const iceInsuranceNum = Number(iceInsurance);
-  const iceResaleNum = Number(iceResale);
-  const evMaintenanceNum = Number(evMaintenance);
-  const evInsuranceNum = Number(evInsurance);
-  const evResaleNum = Number(evResale);
-  const batteryReplacementCostNum = Number(batteryReplacementCost);
-  const batteryReplacementIntervalNum = Number(batteryReplacementInterval);
-
-  // Validate that all inputs are numbers and valid
-  const inputs = [
-    icePrice,
-    mileage,
-    fuelCostNum,
-    iceMaintenanceNum,
-    iceInsuranceNum,
-    iceResaleNum,
-    evPrice,
-    range,
-    batteryCapacity,
-    chargingCost,
-    evMaintenanceNum,
-    evInsuranceNum,
-    evResaleNum,
-    monthlyKmNum,
-    yearsNum,
-    batteryReplacementCostNum,
-    batteryReplacementIntervalNum
-  ];
-
-  if (inputs.some(isNaN)) {
-    return res.status(400).send("Invalid input");
-  }
-
-  // --- ICE vehicle total cost calculation ---
-  // Calculate fuel cost over the years (total km driven divided by mileage, multiplied by fuel price)
-  const totalKmDriven = monthlyKmNum * 12 * yearsNum; // Total kilometers driven in the given years
-  const fuelCostICE = (totalKmDriven / mileage) * fuelCostNum; // Total fuel cost
-
-  // Add up all costs for ICE: Purchase, fuel, maintenance, insurance, subtract resale value
-  const totalCostICE =
-    icePrice +
-    fuelCostICE +
-    iceMaintenanceNum * yearsNum +
-    iceInsuranceNum * yearsNum -
-    iceResaleNum;
-
-  // --- EV vehicle total cost calculation ---
-  // Calculate charging cost over the years (total km divided by range, multiplied by charging cost)
-  const chargingCostEV =
-    (totalKmDriven / range) * batteryCapacity * chargingCost;
-
-  // Calculate battery replacements needed in the given years
-  const batteryReplacements = Math.floor(
-    yearsNum / batteryReplacementIntervalNum
+  // EV vehicle data
+  const evPrice = toNumber(evVehicle.price);
+  const range = toNumber(evVehicle.range, 1); // km per charge
+  const batteryCapacity = toNumber(evVehicle.batteryCapacity);
+  const chargingCost = toNumber(evVehicle.chargingCost);
+  const batteryReplacementCost = toNumber(evVehicle.batteryReplacementCost);
+  const batteryReplacementInterval = toNumber(
+    evVehicle.batteryReplacementInterval,
+    1
   );
 
-  // Add up all costs for EV: Purchase, charging, maintenance, insurance, battery replacements, subtract resale value
-  const totalCostEV =
-    evPrice +
-    chargingCostEV +
-    evMaintenanceNum * yearsNum +
-    evInsuranceNum * yearsNum +
-    batteryReplacements * batteryReplacementCostNum -
-    evResaleNum;
+  // Customer usage data
+  const monthlyKm = toNumber(customerUsage.monthlyKm);
+  const years = toNumber(customerUsage.years, 1);
 
-  // Round the results to nearest integer (to reflect the expected format)
-  const totalCostICERounded = Math.round(totalCostICE);
-  const totalCostEVRounded = Math.round(totalCostEV);
+  // Calculate total distance
+  const totalKm = monthlyKm * 12 * years;
 
-  // Prepare yearly costs for both ICE and EV vehicles for line chart data (optional)
-  const iceYearlyCosts = Array.from(
-    { length: yearsNum },
-    (_, i) =>
-      icePrice +
-      (fuelCostICE / yearsNum) * (i + 1) +
-      iceMaintenanceNum * (i + 1) +
-      iceInsuranceNum * (i + 1) -
-      iceResaleNum
-  );
+  // ICE vehicle calculations
+  const iceFuelCost = (totalKm / mileage) * fuelCost;
+  const iceTotalCost = icePrice + iceFuelCost;
 
-  const evYearlyCosts = Array.from(
-    { length: yearsNum },
-    (_, i) =>
-      evPrice +
-      (chargingCostEV / yearsNum) * (i + 1) +
-      evMaintenanceNum * (i + 1) +
-      evInsuranceNum * (i + 1) +
-      Math.floor((i + 1) / batteryReplacementIntervalNum) *
-        batteryReplacementCostNum -
-      evResaleNum
-  );
+  // EV vehicle calculations
+  const evChargingCost = (totalKm / range) * batteryCapacity * chargingCost;
+  const batteryReplacements = considerBatteryReplacement
+    ? Math.floor(years / batteryReplacementInterval)
+    : 0;
+  const evBatteryReplacementCost = batteryReplacements * batteryReplacementCost;
+  const evTotalCost = evPrice + evChargingCost + evBatteryReplacementCost;
 
-  // Prepare line chart data (optional)
+  // Prepare yearly costs for line chart
+  const iceYearlyCosts = Array.from({ length: years }, (_, i) => {
+    const year = i + 1;
+    return Math.round(icePrice + (iceFuelCost / years) * year);
+  });
+
+  const evYearlyCosts = Array.from({ length: years }, (_, i) => {
+    const year = i + 1;
+    let yearlyCost = evPrice + (evChargingCost / years) * year;
+
+    // Add battery replacement cost at the correct interval (e.g., every 6 years)
+    if (considerBatteryReplacement && year % batteryReplacementInterval === 0) {
+      yearlyCost += batteryReplacementCost;
+    }
+
+    return Math.round(yearlyCost);
+  });
+
+  // Prepare chart data
   const lineChartData = {
-    labels: Array.from({ length: yearsNum }, (_, i) => i + 1),
+    labels: Array.from({ length: years }, (_, i) => i + 1), // Yearly labels
     datasets: [
       {
         label: "ICE TCO",
         data: iceYearlyCosts,
         borderColor: "blue",
-        fill: false
-      },
-      { label: "EV TCO", data: evYearlyCosts, borderColor: "red", fill: false }
-    ]
-  };
-
-  // Prepare pie chart data for cost breakdown (optional)
-  const pieChartData = {
-    labels: [
-      "Purchase",
-      "Fuel/Charging",
-      "Maintenance",
-      "Insurance",
-      "Battery Replacement"
-    ],
-    datasets: [
-      {
-        label: "ICE Cost Breakdown",
-        data: [
-          icePrice,
-          fuelCostICE,
-          iceMaintenanceNum * yearsNum,
-          iceInsuranceNum * yearsNum
-        ],
-        backgroundColor: ["blue", "orange", "gray", "purple"]
+        fill: false,
+        tension: 0.1
       },
       {
-        label: "EV Cost Breakdown",
-        data: [
-          evPrice,
-          chargingCostEV,
-          evMaintenanceNum * yearsNum,
-          evInsuranceNum * yearsNum,
-          batteryReplacements * batteryReplacementCostNum
-        ],
-        backgroundColor: ["red", "green", "gray", "yellow", "cyan"]
+        label: "EV TCO",
+        data: evYearlyCosts,
+        borderColor: "green",
+        fill: false,
+        tension: 0.1
       }
     ]
   };
 
-  // Respond with chart data and total costs
+  const pieChartData = {
+    labels: ["Purchase", "Fuel/Charging", "Battery Replacement"],
+    datasets: [
+      {
+        label: "ICE Cost Breakdown",
+        data: [icePrice, iceFuelCost, 0],
+        backgroundColor: ["blue", "orange", "gray"]
+      },
+      {
+        label: "EV Cost Breakdown",
+        data: [evPrice, evChargingCost, evBatteryReplacementCost],
+        backgroundColor: ["green", "yellow", "magenta"]
+      }
+    ]
+  };
+
+  // Round final results
+  const totalCostICERounded = Math.round(iceTotalCost);
+  const totalCostEVRounded = Math.round(evTotalCost);
+
   res.json({
     lineChartData,
     pieChartData,
