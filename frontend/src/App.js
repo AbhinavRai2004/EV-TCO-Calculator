@@ -33,29 +33,40 @@ function App() {
 
   // State to store the results of the TCO calculation
   const [results, setResults] = useState(null);
-  
+
   // State to handle error messages
   const [error, setError] = useState(null);
 
   // Function to validate input fields
   const validateInputs = () => {
-    // Check if all required fields for ICE Vehicle are filled
+    // Check if all required fields for ICE Vehicle are filled and positive
     if (!iceVehicle.price || !iceVehicle.mileage || !iceVehicle.fuelCost) {
       return "Please fill out all ICE Vehicle fields.";
-    } 
-    // Check if all required fields for EV Vehicle are filled
-    else if (
-      !evVehicle.price ||
-      !evVehicle.range ||
-      !evVehicle.batteryCapacity ||
-      !evVehicle.chargingCost
-    ) {
-      return "Please fill out all EV Vehicle fields.";
-    } 
-    // Check if all required fields for Customer Usage are filled
-    else if (!customerUsage.monthlyKm || !customerUsage.years) {
-      return "Please fill out all Customer Usage fields.";
+    } else if (iceVehicle.price < 0 || iceVehicle.mileage < 0 || iceVehicle.fuelCost < 0) {
+      return "Please enter valid positive numbers for ICE Vehicle fields.";
     }
+
+    // Check if all required fields for EV Vehicle are filled and positive
+    if (!evVehicle.price || !evVehicle.range || !evVehicle.batteryCapacity || !evVehicle.chargingCost) {
+      return "Please fill out all EV Vehicle fields.";
+    } else if (
+      evVehicle.price < 0 ||
+      evVehicle.range < 0 ||
+      evVehicle.batteryCapacity < 0 ||
+      evVehicle.chargingCost < 0 ||
+      evVehicle.batteryReplacementCost < 0 ||
+      evVehicle.batteryReplacementInterval < 0
+    ) {
+      return "Please enter valid positive numbers for EV Vehicle fields.";
+    }
+
+    // Check if all required fields for Customer Usage are filled and positive
+    if (!customerUsage.monthlyKm || !customerUsage.years) {
+      return "Please fill out all Customer Usage fields.";
+    } else if (customerUsage.monthlyKm < 0 || customerUsage.years < 0) {
+      return "Please enter valid positive numbers for Customer Usage fields.";
+    }
+
     return null; // Return null if all validations pass
   };
 
