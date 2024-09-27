@@ -1,0 +1,40 @@
+.results-container {
+  margin-top: 20px;
+  border: 1px solid #ddd;
+  padding: 20px;
+  border-radius: 5px;
+  background-color: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.charts-wrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
+.chart-container {
+  width: 48%;
+  padding: 10px;
+}
+
+.chart-containerPi {
+  width: 40%;
+  padding: 10px;
+}
+
+.chart-separator {
+  width: 2px;
+  background-color: #ddd;
+}
+
+.results-heading {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  color: #007bff;
+}
+
+.results-subheading {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  color: #007bff;
+}
