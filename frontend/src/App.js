@@ -42,12 +42,21 @@ function App() {
     // Check if all required fields for ICE Vehicle are filled and positive
     if (!iceVehicle.price || !iceVehicle.mileage || !iceVehicle.fuelCost) {
       return "Please fill out all ICE Vehicle fields.";
-    } else if (iceVehicle.price < 0 || iceVehicle.mileage < 0 || iceVehicle.fuelCost < 0) {
+    } else if (
+      iceVehicle.price < 0 ||
+      iceVehicle.mileage < 0 ||
+      iceVehicle.fuelCost < 0
+    ) {
       return "Please enter valid positive numbers for ICE Vehicle fields.";
     }
 
     // Check if all required fields for EV Vehicle are filled and positive
-    if (!evVehicle.price || !evVehicle.range || !evVehicle.batteryCapacity || !evVehicle.chargingCost) {
+    if (
+      !evVehicle.price ||
+      !evVehicle.range ||
+      !evVehicle.batteryCapacity ||
+      !evVehicle.chargingCost
+    ) {
       return "Please fill out all EV Vehicle fields.";
     } else if (
       evVehicle.price < 0 ||
@@ -83,7 +92,7 @@ function App() {
     // Try to calculate TCO by making a POST request to the API
     try {
       const response = await axios.post(
-        "http://localhost:3001/api/calculate-tco",
+        "https://ev-tco-calculator.onrender.com/api/calculate-tco",
         {
           iceVehicle,
           evVehicle,
@@ -109,7 +118,7 @@ function App() {
         customerUsage={customerUsage}
         setCustomerUsage={setCustomerUsage}
       />
-      {/* Button to trigger TCO calculation */}
+
       <button onClick={calculateTCO}>Calculate TCO</button>
       {/* Display error message if there is one */}
       {error && <p className="error-message">{error}</p>}
