@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Line, Pie } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -27,9 +27,6 @@ ChartJS.register(
 
 // TCOResults component to display the total cost of ownership results
 const TCOResults = ({ results }) => {
-  // Effect to handle updates when results change
-  useEffect(() => {}, [results]);
-
   // Destructure the results for easier access to data
   const { lineChartData, pieChartData, totalCostICE, totalCostEV } = results;
 
