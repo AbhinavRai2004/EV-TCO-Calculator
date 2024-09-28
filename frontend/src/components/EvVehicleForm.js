@@ -6,8 +6,6 @@ import '../css/Form.css';
 const EvVehicleForm = ({ evVehicle, setEvVehicle }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target; 
-    console.log(`EV Vehicle Form - ${name}: ${value}`); 
-  
     setEvVehicle({ ...evVehicle, [name]: value });
   };
 

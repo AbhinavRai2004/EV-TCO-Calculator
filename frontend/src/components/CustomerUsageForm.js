@@ -30,7 +30,7 @@ const CustomerUsageForm = ({ customerUsage, setCustomerUsage }) => {
         />
       </div>
       
-      {/* Input field for Calculation Duration in Years */}
+
       <div className="form-group">
         <label className="form-label">Calculation Duration (Years)</label>
         <input

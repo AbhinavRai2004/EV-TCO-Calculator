@@ -8,25 +8,25 @@ router.post("/calculate-tco", (req, res) => {
     customerUsage.considerBatteryReplacement === true; // Determine if battery replacement should be considered
 
   // Helper function to convert values to numbers with a default value
-  const toNumber = (value, defaultValue = 0) => {
+  const toNumber = (value) => {
     const num = Number(value);
-    return isNaN(num) ? defaultValue : num; // Return default if conversion fails
+    return num; 
   };
 
   // Extract and convert input values
   const icePrice = toNumber(iceVehicle.price);
-  const mileage = toNumber(iceVehicle.mileage, 1);
+  const mileage = toNumber(iceVehicle.mileage);
   const fuelCost = toNumber(iceVehicle.fuelCost);
 
   const evPrice = toNumber(evVehicle.price);
-  const range = toNumber(evVehicle.range, 1);
+  const range = toNumber(evVehicle.range);
   const batteryCapacity = toNumber(evVehicle.batteryCapacity);
   const chargingCost = toNumber(evVehicle.chargingCost);
   const batteryReplacementCost = toNumber(evVehicle.batteryReplacementCost);
-  const batteryReplacementInterval = toNumber(evVehicle.batteryReplacementInterval, 1);
+  const batteryReplacementInterval = toNumber(evVehicle.batteryReplacementInterval);
 
   const monthlyKm = toNumber(customerUsage.monthlyKm);
-  const years = toNumber(customerUsage.years, 1);
+  const years = toNumber(customerUsage.years);
   const totalKm = monthlyKm * 12 * years; // Calculate total kilometers driven over the years
 
   // Calculate ICE vehicle costs
